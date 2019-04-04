@@ -12,18 +12,64 @@
     <script src="https://vuejs.org/js/vue.js"></script>
     <link rel="stylesheet" href="../lib/calendar.min.css" />
     <script src="../lib/calendar.js"></script>
+    <style lang="css">
+              #app {
+          font-family: 'Avenir', Helvetica, Arial, sans-serif;
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
+          text-align: center;
+          color: #2c3e50;
+          margin-top: 60px;
+        }
+        .lorem {
+          visibility: hidden;
+        }
+        .event-calendar .datepicker-inner {
+          width: 440px;
+        }
+        .event-calendar .datepicker-body span {
+          width: 60px;
+          height: 60px;
+          vertical-align: top;
+        }
+        .event-calendar .datepicker-body .event {
+          color: #e56700;
+        }
+        .event-calendar .datepicker-body .low {
+          color: red;
+          font-weight: bold;
+        }
+        .event-calendar .datepicker-body .datepicker-monthRange span {
+          width: 100px;
+          height: 100px;
+          vertical-align: middle;
+          line-height: 100px;
+        }
+        .datepicker-dateRange-item-active, .datepicker-dateRange-item-active:hover {
+        color: rgb(255, 255, 255) !important;
+        background: rgb(131, 174, 211) !important;
+        }
+    </style>
   </head>
   <body>
     <div id="app">
-      <div class="text-center" style="padding-top: 100px;">
-        <calendar
-          v-model="value"
-          show-date-only
-          :disabled-days-of-week="disabled"
-          :format="format"
-          :clear-button="clear"
-          :placeholder="placeholder"
-        ></calendar>
+      <div class="container">
+        <div style="height: 600px;">
+          <calendar class="event-calendar" v-model="value" 
+           :disabled-days-of-week="disabled" 
+           :format="format" :clear-button="clear"
+            :placeholder="placeholder"
+             :pane="2" 
+             :has-input="false" 
+             :on-day-click="onDayClick" 
+             :change-pane="changePane">
+            <div class="event" v-for="(evt, index) in events" :key="index" :slot="evt.date">
+                ${{evt.content}} <i :class="{low : evt.low}" v-if="evt.low">↓</i>
+            </div>
+          </calendar>
+        
+        </div>
+       
       </div>
     </div>
     <script>
@@ -35,13 +81,75 @@
             value: new Date(),
             format: "yyyy-MM-dd",
             clear: true,
-            placeholder: "Start Date"
+            placeholder: "Start Date",
+            date:'',
+            events: [],
           };
         },
         components: {
           calendar: Calendar
+        },
+        methods:{
+          onDayClick (date, str) {
+            console.log("select date")
+            this.date = str
+          },
+          changePane (year, month, pane) {
+      this.events = []
+      // ajax data or ...
+      setTimeout(() => {
+        this.events = this.getEventContent(year, month, pane)
+      }, 200)
+    },
+    stringify (v) {
+      if (!this.isDate(v)) return null
+      return v.getFullYear() + '-' + this.filled(v.getMonth() * 1 + 1) + '-' + this.filled(v.getDate())
+    },
+    filled (v) {
+      return String(v).replace(/^(\d)$/, '0$1')
+    },
+    isDate (v) {
+      if (v instanceof Date) {
+        return true
+      }
+      return false
+    },
+    
+   
+    getDayCount (year, month) {
+      const dict = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+      if (month === 1) {
+        if ((year % 400 === 0) || (year % 4 === 0 && year % 100 !== 0)) {
+          return 29
+        }
+      }
+      return dict[month]
+    },
+    random (min, max) {
+      if (max == null) {
+        max = min
+        min = 0
+      }
+      return min + Math.floor(Math.random() * (max - min + 1))
+    },
+    getEventContent (year, month, pane) {
+      const data = []
+      for (let p = 0; p < pane; p++) {
+        let date = new Date(year, month + p)
+        let monthCounts = this.getDayCount(date.getFullYear(), date.getMonth())
+        for (let i = 1; i <= monthCounts; i++) {
+          data.push({
+            date: this.stringify(new Date(year, month + p, i)),
+            content: this.random(100, 1000),
+            low: this.random(1)
+          })
+        }
+      }
+      return data
+    }
         }
       });
     </script>
   </body>
 </html>
+

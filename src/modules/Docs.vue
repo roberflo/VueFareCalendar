@@ -26,7 +26,6 @@
 </template>
 <script>
 import Vue from 'vue'
-
 import Calendar from 'components/Calendar'
 import lunar from 'utils/lunar'
 export default {
@@ -155,50 +154,8 @@ export default {
   
     onDayClick3 (date, str) {
       this.date3 = str
-    },
-    changePane (year, month, pane) {
-      this.events = []
-      // ajax data or ...
-      setTimeout(() => {
-        this.events = this.getEventContent(year, month, pane)
-      }, 200)
-    },
-    onDayClick4 (date, str) {
-      this.date4 = str
-    },
-    
-   
-    getDayCount (year, month) {
-      const dict = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
-      if (month === 1) {
-        if ((year % 400 === 0) || (year % 4 === 0 && year % 100 !== 0)) {
-          return 29
-        }
-      }
-      return dict[month]
-    },
-    random (min, max) {
-      if (max == null) {
-        max = min
-        min = 0
-      }
-      return min + Math.floor(Math.random() * (max - min + 1))
-    },
-    getEventContent (year, month, pane) {
-      const data = []
-      for (let p = 0; p < pane; p++) {
-        let date = new Date(year, month + p)
-        let monthCounts = this.getDayCount(date.getFullYear(), date.getMonth())
-        for (let i = 1; i <= monthCounts; i++) {
-          data.push({
-            date: this.stringify(new Date(year, month + p, i)),
-            content: this.random(100, 1000),
-            low: this.random(1)
-          })
-        }
-      }
-      return data
     }
+    
 
   }
 }
