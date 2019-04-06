@@ -47,7 +47,7 @@
         }
         .datepicker-dateRange-item-active, .datepicker-dateRange-item-active:hover {
         color: rgb(255, 255, 255) !important;
-        background: rgb(131, 174, 211) !important;
+        background: rgb(193, 213, 230) !important;
         }
     </style>
   </head>
@@ -55,14 +55,16 @@
     <div id="app">
       <div class="container">
         <div style="height: 600px;">
-          <calendar class="event-calendar" v-model="value" 
+          <calendar class="event-calendar" v-model="date" 
            :disabled-days-of-week="disabled" 
            :format="format" :clear-button="clear"
             :placeholder="placeholder"
-             :pane="2" 
+             :pane="1" 
              :has-input="false" 
              :on-day-click="onDayClick" 
-             :change-pane="changePane">
+             :change-pane="changePane"
+             :min-date="getToday()"
+             :first-day-of-week=1>
             <div class="event" v-for="(evt, index) in events" :key="index" :slot="evt.date">
                 ${{evt.content}} <i :class="{low : evt.low}" v-if="evt.low">↓</i>
             </div>
@@ -78,7 +80,7 @@
         data: function() {
           return {
             disabled: [],
-            value: new Date(),
+            today: new Date(),
             format: "yyyy-MM-dd",
             clear: true,
             placeholder: "Start Date",
@@ -86,20 +88,24 @@
             events: [],
           };
         },
+       
         components: {
           calendar: Calendar
         },
         methods:{
           onDayClick (date, str) {
-            console.log("select date")
-            this.date = str
+            console.log(date);
+            this.date = date
           },
-          changePane (year, month, pane) {
+          getToday(){
+             return this.stringify(this.today);
+          },
+      changePane (year, month, pane) {
       this.events = []
-      // ajax data or ...
-      setTimeout(() => {
-        this.events = this.getEventContent(year, month, pane)
-      }, 200)
+      // ajax data
+       
+        this.events = this.getEventContent(year,  Number(month)+1 , pane)
+      
     },
     stringify (v) {
       if (!this.isDate(v)) return null
@@ -133,18 +139,28 @@
       return min + Math.floor(Math.random() * (max - min + 1))
     },
     getEventContent (year, month, pane) {
-      const data = []
-      for (let p = 0; p < pane; p++) {
-        let date = new Date(year, month + p)
-        let monthCounts = this.getDayCount(date.getFullYear(), date.getMonth())
-        for (let i = 1; i <= monthCounts; i++) {
-          data.push({
-            date: this.stringify(new Date(year, month + p, i)),
-            content: this.random(100, 1000),
-            low: this.random(1)
+      var cleanDays = []
+      var events = []
+      var data = []
+      var disabled= []
+     
+     //Get events from API
+     var url = 'https://api.tripperbs.com/tours/calendar/318/'+ month
+     fetch(url)
+     .then((resp) => resp.json()) // Transform the data into json
+     .then(function(events) {
+       
+      events.map(event=>{
+        data.push({
+            date: event.date,
+            content: event.content,
+            low: Number(event.low)
           })
-        }
-      }
+      })
+      
+     })
+  
+
       return data
     }
         }
